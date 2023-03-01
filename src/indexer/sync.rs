@@ -1,11 +1,10 @@
-use std::sync::{Arc};
-
-use crate::AppState;
-
 use {
-    crate::db::{self, schema::*},
+    crate::{
+        db::{self, model::*, schema::*},
+        AppState,
+    },
     diesel::prelude::*,
-    std::error::Error,
+    std::{error::Error, sync::Arc},
     tezos_rpc::{
         client::TezosRpc,
         models::{
@@ -85,7 +84,7 @@ pub async fn run(app_state: Arc<AppState>) -> Result<(), Box<dyn Error>> {
         }
     };
 
-    while 1 != 2 {
+    while true != false {
         let block = rpc
             .get_block()
             // .block_id(&block::BlockId::Level(-1))
@@ -109,6 +108,16 @@ pub async fn run(app_state: Arc<AppState>) -> Result<(), Box<dyn Error>> {
             let payload = serde_json::to_string(&event.payload).unwrap();
             let status = status_to_string(event.result.status);
             let source = String::from(event.source);
+            let event_model = EventModel::new(
+                source.clone(),
+                event.r#type,
+                event.tag.clone(),
+                event.nonce,
+                event.payload,
+                Some(String::from(status)),
+                event.result.consumed_milligas.clone(),
+                block.header.level,
+            );
             diesel::insert_into(events::table)
                 .values((
                     events::source.eq(source),
@@ -121,7 +130,8 @@ pub async fn run(app_state: Arc<AppState>) -> Result<(), Box<dyn Error>> {
                     events::block_id.eq(block.header.level),
                 ))
                 .execute(conn)?;
-            app_state.tx.send(String::from(event.tag)).unwrap();
+            // app_state.tx.send(String::from(event.tag)).unwrap();
+            app_state.tx.send(serde_json::to_string(&event_model).unwrap()).unwrap();
         }
 
         // sleep some seconds

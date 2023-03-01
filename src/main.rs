@@ -26,7 +26,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let _user_set = Mutex::new(HashSet::new());
     let (tx, _rx) = broadcast::channel::<String>(100);
-    let app_state = Arc::new(AppState { user_set: _user_set, tx });
+    let app_state = Arc::new(AppState {
+        user_set: _user_set,
+        tx,
+    });
 
     // Load Service to sync the events
     let tr = tokio::runtime::Runtime::new().unwrap();
