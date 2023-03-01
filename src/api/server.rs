@@ -1,20 +1,30 @@
-use axum::{headers, response::Html};
-
 use {
+    crate::AppState,
+    async_stream::try_stream,
     axum::{
-        extract::TypedHeader,
-        response::sse::{Event, Sse},
+        extract::{
+            ws::{Message, WebSocket, WebSocketUpgrade},
+            ConnectInfo, State, TypedHeader,
+        },
+        headers,
+        response::{
+            sse::{Event, Sse},
+            Html, IntoResponse,
+        },
         routing::get,
-        Router,
+        Json, Router,
     },
-    futures::stream::{self, Stream},
-    std::{convert::Infallible, net::SocketAddr, time::Duration},
-    tokio_stream::StreamExt as _,
-    tower_http::trace::TraceLayer,
+    futures::{stream::Stream, StreamExt},
+    std::{convert::Infallible, net::SocketAddr, path::PathBuf, sync::Arc},
+    tower_http::{
+        cors::{Any, CorsLayer},
+        services::ServeDir,
+        trace::TraceLayer,
+    },
     tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt},
 };
 
-pub async fn run() {
+pub async fn run(app_state: Arc<AppState>) {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -23,36 +33,90 @@ pub async fn run() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
+    let assets_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets");
+
     // build our application with a route
     let app = Router::new()
+        .nest_service("/", ServeDir::new(assets_dir))
         .route("/sse", get(sse_handler))
-        .route("/", get(handler))
-        .layer(TraceLayer::new_for_http());
+        .route("/ws", get(websocket_handler))
+        .layer(TraceLayer::new_for_http())
+        // .layer(CorsLayer::new().allow_origin(Any).allow_methods(Any))
+        .with_state(app_state);
 
     // run it
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     tracing::debug!("listening on {}", addr);
     axum::Server::bind(&addr)
-        .serve(app.into_make_service())
+        // .serve(app.into_make_service())
+        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
         .await
         .unwrap();
 }
 
 async fn sse_handler(
     TypedHeader(user_agent): TypedHeader<headers::UserAgent>,
+    State(app_state): State<Arc<AppState>>,
 ) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     println!("`{}` connected", user_agent.as_str());
 
-    // A `Stream` that repeats an event every second
-    let stream = stream::repeat_with(|| Event::default().data("hi!"))
-        .map(Ok)
-        .throttle(Duration::from_secs(1));
+    let mut receiver = app_state.tx.subscribe();
 
-    Sse::new(stream).keep_alive(
-        axum::response::sse::KeepAlive::new()
-            .interval(Duration::from_secs(1))
-            .text("keep-alive-text"),
-    )
+    // A `Stream` that receives messages from the `broadcast::Receiver`
+    // Event::default().json_data("Hello, World!").unwrap();
+    let stream = try_stream! {
+        loop {
+            match receiver.recv().await {
+                Ok(i) => {
+                    println!("Received: {}", i);
+                    let event = Event::default().data(i);
+                    yield event;
+                },
+                Err(e) => {
+                    tracing::error!(error = ?e, "Failed to get");
+                }
+            }
+        }
+    };
+
+    Sse::new(stream)
+}
+
+async fn websocket_handler(
+    ws: WebSocketUpgrade,
+    State(state): State<Arc<AppState>>,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+) -> impl IntoResponse {
+    ws.on_upgrade(move |socket| websocket(socket, state, addr))
+}
+
+// This function deals with a single websocket connection, i.e., a single
+// connected client / user, for which we will spawn one independent tasks (for
+// sending chat messages).
+async fn websocket(mut stream: WebSocket, state: Arc<AppState>, who: SocketAddr) {
+    // Ping the client to make sure the connection is alive.
+    if stream.send(Message::Ping(vec![1, 2, 3])).await.is_ok() {
+        println!("Pinged {}...", who);
+    } else {
+        println!("Could not send ping {}!", who);
+        // no Error here since the only thing we can do is to close the connection.
+        // If we can not send messages, there is no way to salvage the statemachine anyway.
+        return;
+    }
+
+    // Subscribe to the broadcast channel to receive events.
+    let mut rx = state.tx.subscribe();
+
+    // Spawn the first task that will receive broadcast messages and send text
+    // messages over the websocket to our client.
+    let mut _send_task = tokio::spawn(async move {
+        while let Ok(msg) = rx.recv().await {
+            // In any websocket error, break loop.
+            if stream.send(Message::Text(msg)).await.is_err() {
+                break;
+            }
+        }
+    });
 }
 
 async fn handler() -> Html<&'static str> {

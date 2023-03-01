@@ -8,6 +8,7 @@ CREATE TABLE events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   /* [timestamp] TEXT NOT NULL, */
   source VARCHAR NOT NULL,
+  tag VARCHAR NOT NULL,
   nonce INTEGER NOT NULL,
   [type] TEXT NOT NULL,
   payload TEXT NOT NULL,

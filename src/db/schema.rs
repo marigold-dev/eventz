@@ -11,6 +11,7 @@ diesel::table! {
     events (id) {
         id -> Nullable<Integer>,
         source -> Text,
+        tag -> Text,
         nonce -> Integer,
         #[sql_name = "type"]
         type_ -> Text,

@@ -1,3 +1,7 @@
+use std::sync::{Arc};
+
+use crate::AppState;
+
 use {
     crate::db::{self, schema::*},
     diesel::prelude::*,
@@ -59,7 +63,7 @@ fn status_to_string(status: OperationResultStatus) -> &'static str {
     }
 }
 
-pub async fn run() -> Result<(), Box<dyn Error>> {
+pub async fn run(app_state: Arc<AppState>) -> Result<(), Box<dyn Error>> {
     let conn = &mut db::connect::establish_connection();
     let rpc = TezosRpc::new("https://mainnet.tezos.marigold.dev".into());
     let constants = rpc
@@ -84,7 +88,8 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
     while 1 != 2 {
         let block = rpc
             .get_block()
-            .block_id(&block::BlockId::Level(-1))
+            // .block_id(&block::BlockId::Level(-1))
+            .block_id(&block::BlockId::Level(3174814))
             .send()
             .await?;
         println!("Syncing the block: {}", block.header.level);
@@ -109,12 +114,14 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
                     events::source.eq(source),
                     events::nonce.eq(event.nonce as i32),
                     events::type_.eq(r#type),
+                    events::tag.eq(event.tag.clone()),
                     events::payload.eq(payload),
                     events::operation_result_status.eq(status),
                     events::operation_result_consumed_milligas.eq(event.result.consumed_milligas),
                     events::block_id.eq(block.header.level),
                 ))
                 .execute(conn)?;
+            app_state.tx.send(String::from(event.tag)).unwrap();
         }
 
         // sleep some seconds
