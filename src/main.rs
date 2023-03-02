@@ -14,7 +14,7 @@ mod indexer;
 // Our shared state
 pub struct AppState {
     // We require unique usernames. This tracks which usernames have been taken.
-    user_set: Mutex<HashSet<String>>,
+    _cache: Mutex<HashSet<String>>,
     // Channel used to send messages to all connected clients.
     tx: broadcast::Sender<String>,
 }
@@ -24,12 +24,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Load .env file
     dotenv().ok();
 
-    let _user_set = Mutex::new(HashSet::new());
+    let _cache = Mutex::new(HashSet::new());
     let (tx, _rx) = broadcast::channel::<String>(100);
-    let app_state = Arc::new(AppState {
-        user_set: _user_set,
-        tx,
-    });
+    let app_state = Arc::new(AppState { _cache, tx });
 
     // Load Service to sync the events
     let tr = tokio::runtime::Runtime::new().unwrap();

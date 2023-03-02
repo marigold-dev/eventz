@@ -9,18 +9,14 @@ use {
         headers,
         response::{
             sse::{Event, Sse},
-            Html, IntoResponse,
+            IntoResponse,
         },
         routing::get,
-        Json, Router,
+        Router,
     },
-    futures::{stream::Stream, StreamExt},
+    futures::stream::Stream,
     std::{convert::Infallible, net::SocketAddr, path::PathBuf, sync::Arc},
-    tower_http::{
-        cors::{Any, CorsLayer},
-        services::ServeDir,
-        trace::TraceLayer,
-    },
+    tower_http::{services::ServeDir, trace::TraceLayer},
     tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt},
 };
 
@@ -117,8 +113,4 @@ async fn websocket(mut stream: WebSocket, state: Arc<AppState>, who: SocketAddr)
             }
         }
     });
-}
-
-async fn handler() -> Html<&'static str> {
-    Html("<h1>Hello, World!</h1>")
 }

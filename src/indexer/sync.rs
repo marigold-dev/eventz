@@ -87,8 +87,8 @@ pub async fn run(app_state: Arc<AppState>) -> Result<(), Box<dyn Error>> {
     while true != false {
         let block = rpc
             .get_block()
-            // .block_id(&block::BlockId::Level(-1))
-            .block_id(&block::BlockId::Level(3174814))
+            .block_id(&block::BlockId::Level(-1))
+            // .block_id(&block::BlockId::Level(3174814))
             .send()
             .await?;
         println!("Syncing the block: {}", block.header.level);
@@ -130,8 +130,11 @@ pub async fn run(app_state: Arc<AppState>) -> Result<(), Box<dyn Error>> {
                     events::block_id.eq(block.header.level),
                 ))
                 .execute(conn)?;
-            // app_state.tx.send(String::from(event.tag)).unwrap();
-            app_state.tx.send(serde_json::to_string(&event_model).unwrap()).unwrap();
+
+            app_state
+                .tx
+                .send(serde_json::to_string(&event_model).unwrap())
+                .unwrap();
         }
 
         // sleep some seconds

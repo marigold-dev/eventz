@@ -1,5 +1,7 @@
-use diesel::{prelude::*, sqlite::SqliteConnection};
-use std::env;
+use {
+    diesel::{prelude::*, sqlite::SqliteConnection},
+    std::env,
+};
 
 pub fn establish_connection() -> SqliteConnection {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
