@@ -1,10 +1,10 @@
 use {
+    crate::config::Config,
     diesel::{prelude::*, sqlite::SqliteConnection},
-    std::env,
+    std::sync::Arc,
 };
 
-pub fn establish_connection() -> SqliteConnection {
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    SqliteConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+pub fn establish_connection(config: Arc<Config>) -> SqliteConnection {
+    SqliteConnection::establish(&config.database_url)
+        .unwrap_or_else(|_| panic!("Error connecting to {}", config.database_url))
 }

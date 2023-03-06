@@ -1,0 +1,3 @@
+database_url = '/database.sql'
+data_store_mode = 'Store'
+indirect = false

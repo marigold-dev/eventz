@@ -8,22 +8,18 @@ opt-level = 3
 strip = true
 
 [dependencies]
-# tezos-rpc = { git = "https://github.com/airgap-it/tezos-rust-sdk" }
-tezos-rpc = { git = "https://github.com/fraidev/tezos-rust-sdk" }
-tezos-core = { git = "https://github.com/fraidev/tezos-rust-sdk" }
-tezos-michelson = { git = "https://github.com/fraidev/tezos-rust-sdk" }
-# tezos-rpc = { path = "../tezos-rust-sdk/tezos-rpc" }
-# tezos-core = { path = "../tezos-rust-sdk/tezos-core" }
+tezos-rpc = { git = "https://github.com/airgap-it/tezos-rust-sdk" }
+tezos-core = { git = "https://github.com/airgap-it/tezos-rust-sdk" }
+tezos-michelson = { git = "https://github.com/airgap-it/tezos-rust-sdk" }
 tokio = { version = "1.19", features = ["full"] }
 diesel = { version = "2.0.0", features = ["sqlite"] }
-dotenvy = "0.15"
 axum = {version = "0.6.7", features = ["headers", "ws"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-
 tokio-stream = "0.1"
 futures = "0.3"
 tower-http = { version = "0.4.0", features = ["fs", "trace", "cors"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 async-stream = "0.3.4"
+confy = {version = "0.5.1", feature = ["yaml_conf"]}

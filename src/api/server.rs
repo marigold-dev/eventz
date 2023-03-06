@@ -1,5 +1,5 @@
 use {
-    crate::AppState,
+    crate::{app_state::AppState, config::Config},
     async_stream::try_stream,
     axum::{
         extract::{
@@ -20,7 +20,7 @@ use {
     tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt},
 };
 
-pub async fn run(app_state: Arc<AppState>) {
+pub async fn run(app_state: Arc<AppState>, _config: Arc<Config>) {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()

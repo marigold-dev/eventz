@@ -1,7 +1,8 @@
 use {
     crate::{
+        app_state::AppState,
+        config::Config,
         db::{self, model::*, schema::*},
-        AppState,
     },
     diesel::prelude::*,
     std::{error::Error, sync::Arc},
@@ -62,8 +63,8 @@ fn status_to_string(status: OperationResultStatus) -> &'static str {
     }
 }
 
-pub async fn run(app_state: Arc<AppState>) -> Result<(), Box<dyn Error>> {
-    let conn = &mut db::connect::establish_connection();
+pub async fn run(app_state: Arc<AppState>, config: Arc<Config>) -> Result<(), Box<dyn Error>> {
+    let conn = &mut db::connect::establish_connection(config);
     let rpc = TezosRpc::new("https://mainnet.tezos.marigold.dev".into());
     let constants = rpc
         .get_constants()
