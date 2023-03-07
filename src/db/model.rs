@@ -17,7 +17,7 @@ use {
 
 #[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
 pub struct EventModel {
-    pub id: Option<i32>,
+    // pub id: u64,
     pub source: String,
     pub type_: Micheline,
     pub tag: String,
@@ -30,6 +30,7 @@ pub struct EventModel {
 
 impl EventModel {
     pub fn new(
+        // id: u64,
         source: String,
         type_: Micheline,
         tag: String,
@@ -40,7 +41,7 @@ impl EventModel {
         block_id: i32,
     ) -> Self {
         Self {
-            id: None,
+            // id,
             source,
             type_,
             tag,

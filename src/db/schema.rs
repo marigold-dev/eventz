@@ -4,12 +4,12 @@ diesel::table! {
     blocks (id) {
         id -> Integer,
         hash -> Text,
+        timestamp -> Text,
     }
 }
 
 diesel::table! {
-    events (id) {
-        id -> Nullable<Integer>,
+    events (nonce, block_id) {
         source -> Text,
         tag -> Text,
         nonce -> Integer,

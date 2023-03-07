@@ -1,3 +1,8 @@
-database_url = '/database.sql'
-data_store_mode = 'Store'
-indirect = false
+database_url = 'eventz.db'
+tezos_rpc_url = 'https://mainnet.tezos.marigold.dev'
+enable_sync = true
+enable_api = true
+data_store_mode = 'store'
+sync_block_level = -1
+pooling_interval = 'use_constants'
+smart_contracts = 'all'

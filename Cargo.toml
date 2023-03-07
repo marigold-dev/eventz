@@ -22,4 +22,4 @@ tower-http = { version = "0.4.0", features = ["fs", "trace", "cors"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 async-stream = "0.3.4"
-confy = {version = "0.5.1", feature = ["yaml_conf"]}
+confy = { version = "0.5.1", feature = ["yaml_conf"] }

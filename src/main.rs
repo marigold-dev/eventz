@@ -13,6 +13,7 @@ mod app_state;
 mod config;
 mod db;
 mod indexer;
+mod serde_utils;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -24,17 +25,20 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let app_state = Arc::new(app_state::AppState { _cache, tx });
 
     // Load Service to sync the events
-    let tr = tokio::runtime::Runtime::new().unwrap();
-    let indexer_app_state = app_state.clone();
-    let indexer_config = config.clone();
-    tr.spawn(async {
-        indexer::sync::run(indexer_app_state, indexer_config)
-            .await
-            .unwrap();
-    });
-
+    let tr = tokio::runtime::Runtime::new()?;
+    if config.enable_sync {
+        let indexer_app_state = app_state.clone();
+        let indexer_config = config.clone();
+        tr.spawn(async {
+            indexer::sync::run(indexer_app_state, indexer_config)
+                .await
+                .unwrap();
+        });
+    }
     // Start the WEB API
-    api::server::run(app_state.clone(), config.clone()).await;
+    if config.enable_api {
+        api::server::run(app_state.clone(), config.clone()).await;
+    }
 
     Ok(())
 }
