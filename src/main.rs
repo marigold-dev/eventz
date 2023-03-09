@@ -18,7 +18,6 @@ mod serde_utils;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let config = Arc::new(confy::load_path::<Config>("config.yml")?);
-    dbg!(&config);
 
     let _cache = Mutex::new(HashSet::<String>::new());
     let (tx, _rx) = broadcast::channel::<String>(100);

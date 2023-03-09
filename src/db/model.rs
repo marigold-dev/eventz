@@ -16,6 +16,16 @@ use {
 };
 
 #[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
+#[diesel(table_name = blocks)]
+pub struct BlockModel {
+    pub id: i32,
+    pub hash: String,
+    pub timestamp: String,
+}
+
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
+#[diesel(belongs_to(BlockModel))]
+#[diesel(table_name = events)]
 pub struct EventModel {
     // pub id: u64,
     pub source: String,

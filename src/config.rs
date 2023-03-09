@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 mod unit_variant {
     use crate::serde_utils::named_unit_variant;
     named_unit_variant!(all);
-    named_unit_variant!(use_constants);
     named_unit_variant!(store);
 }
 
@@ -12,9 +11,9 @@ pub struct Config {
     pub tezos_rpc_url: String,
     pub enable_sync: bool,
     pub enable_api: bool,
+    pub sync_block_level_from: i32,
+    pub blocks_to_check_sync: i32,
     pub data_store_mode: DataStoreMode,
-    pub sync_block_level: i32,
-    pub pooling_interval: PollingInterval,
     pub smart_contracts: SmartContracts,
 }
 
@@ -25,9 +24,9 @@ impl Default for Config {
             tezos_rpc_url: String::from("https://mainnet.tezos.marigold.dev"),
             enable_sync: true,
             enable_api: true,
-            data_store_mode: DataStoreMode::Store,
-            sync_block_level: -1,
-            pooling_interval: PollingInterval::UseConstants,
+            sync_block_level_from: -1,
+            blocks_to_check_sync: 10,
+            data_store_mode: DataStoreMode::Prune(100),
             smart_contracts: SmartContracts::All,
         }
     }
@@ -43,16 +42,8 @@ pub enum SmartContracts {
 
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum PollingInterval {
-    #[serde(with = "unit_variant::use_constants")]
-    UseConstants,
-    Fixed(u64),
-}
-
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
 pub enum DataStoreMode {
     #[serde(with = "unit_variant::store")]
     Store,
-    Prune(usize),
+    Prune(u32),
 }
