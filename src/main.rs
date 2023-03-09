@@ -21,7 +21,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let _cache = Mutex::new(HashSet::<String>::new());
     let (tx, _rx) = broadcast::channel::<String>(100);
-    let app_state = Arc::new(app_state::AppState { _cache, tx });
+    let app_state = Arc::new(app_state::AppState {
+        _cache,
+        config: config.clone(),
+        tx,
+    });
 
     // Load Service to sync the events
     let tr = tokio::runtime::Runtime::new()?;
@@ -36,7 +40,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
     // Start the WEB API
     if config.enable_api {
-        api::server::run(app_state.clone(), config.clone()).await;
+        api::server::run(app_state.clone()).await;
     }
 
     Ok(())

@@ -20,7 +20,7 @@ use {
     tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt},
 };
 
-pub async fn run(app_state: Arc<AppState>, _config: Arc<Config>) {
+pub async fn run(app_state: Arc<AppState>) {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -36,6 +36,7 @@ pub async fn run(app_state: Arc<AppState>, _config: Arc<Config>) {
         .nest_service("/", ServeDir::new(assets_dir))
         .route("/sse", get(sse_handler))
         .route("/ws", get(websocket_handler))
+        .route("/config", get(config_handler))
         .layer(TraceLayer::new_for_http())
         // .layer(CorsLayer::new().allow_origin(Any).allow_methods(Any))
         .with_state(app_state);
@@ -48,6 +49,10 @@ pub async fn run(app_state: Arc<AppState>, _config: Arc<Config>) {
         .serve(app.into_make_service_with_connect_info::<SocketAddr>())
         .await
         .unwrap();
+}
+
+async fn config_handler(State(app_state): State<Arc<AppState>>) -> impl IntoResponse {
+    axum::response::Json(app_state.config.clone())
 }
 
 async fn sse_handler(

@@ -14,7 +14,7 @@ tezos-michelson = { git = "https://github.com/airgap-it/tezos-rust-sdk" }
 tokio = { version = "1.19", features = ["full"] }
 diesel = { version = "2.0.0", features = ["sqlite"] }
 axum = {version = "0.6.7", features = ["headers", "ws"] }
-serde = { version = "1.0", features = ["derive"] }
+serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = "1.0"
 tokio-stream = "0.1"
 futures = "0.3"
