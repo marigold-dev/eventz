@@ -1,9 +1,9 @@
-use std::sync::Arc;
-
-use crate::config::Config;
-
 use {
-    std::{collections::HashSet, sync::Mutex},
+    crate::config::Config,
+    std::{
+        collections::HashSet,
+        sync::{Arc, Mutex},
+    },
     tokio::sync::broadcast,
 };
 

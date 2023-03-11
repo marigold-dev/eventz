@@ -1,5 +1,5 @@
 use {
-    crate::{app_state::AppState, config::Config},
+    crate::app_state::AppState,
     async_stream::try_stream,
     axum::{
         extract::{

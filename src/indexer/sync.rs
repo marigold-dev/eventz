@@ -10,7 +10,6 @@ use {
         client::TezosRpc,
         models::{
             block::{self, Block},
-            constants::Constants,
             operation::{
                 operation_result::{
                     operations::{event::InternalEventOperationResult, InternalOperationResult},
@@ -125,8 +124,8 @@ pub async fn run(app_state: Arc<AppState>, config: Arc<Config>) -> Result<(), Bo
 
         // Check if we should store everything or prune old blocks
         if let DataStoreMode::Prune(prune_after_n_blocks) = config.data_store_mode {
-            if (blocks_checked_since_start == 0
-                || blocks_checked_since_start % prune_after_n_blocks as i32 == 0)
+            if blocks_checked_since_start == 0
+                || blocks_checked_since_start % prune_after_n_blocks as i32 == 0
             {
                 let block_level_to_prune = block_level - prune_after_n_blocks as i32;
                 println!("Pruning blocks older than: {}", block_level_to_prune);
